@@ -117,6 +117,12 @@ class QuadrotorEnv(gym.Env):
         # Get Reference Trajectory
         self.x_ref_traj, self.z_ref_traj, self.dx_ref_traj, self.dz_ref_traj, self.ddx_ref_traj, self.ddz_ref_traj,  self.x_bound, self.z_bound = self.generate_trajectory_PD()
 
+        self.x_ref_traj_for_draw = self.x_ref_traj
+        self.z_ref_traj_for_draw = self.z_ref_traj
+        self.dx_ref_traj_for_draw = self.dx_ref_traj
+        self.dz_ref_traj_for_draw = self.dz_ref_traj
+
+
         self.x_ref_traj, self.z_ref_traj, self.dx_ref_traj, self.dz_ref_traj, self.theta_ref_traj, self.dtheta_ref_traj = self.generate_trajectory()
 
         
