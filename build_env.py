@@ -1,6 +1,5 @@
 from envs.quadrotor_env import QuadrotorEnv
-# from envs.unicycle_env import UnicycleEnv
-# from envs.simulated_cars_env import SimulatedCarsEnv
+from envs.unicycle_env import UnicycleEnv
 
 """
 This file includes a function that simply returns one of the two supported environments. 
@@ -11,8 +10,6 @@ def build_env(args):
 
     if args.env_name == 'Unicycle':
         return UnicycleEnv()
-    elif args.env_name == 'SimulatedCars':
-        return SimulatedCarsEnv()
     elif args.env_name == 'Quadrotor':
         return QuadrotorEnv()
     else:

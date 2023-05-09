@@ -1,5 +1,3 @@
-from comet_ml import Experiment
-
 import argparse
 import torch
 import numpy as np
@@ -19,7 +17,7 @@ import matplotlib.pyplot as plt
 
 
 
-def train(agent, env, dynamics_model, args, experiment=None):
+def train(agent, env, dynamics_model, args):
 
     # Memory
     h_count = 0
@@ -176,10 +174,6 @@ def train(agent, env, dynamics_model, args, experiment=None):
             agent.save_model(args.output)
             dynamics_model.save_disturbance_models(args.output)
 
-        # if experiment:
-        #     # Comet.ml logging
-        #     experiment.log_metric('reward/train', episode_reward, step=i_episode)
-        #     experiment.log_metric('cost/train', episode_cost, step=i_episode)
         h_count += 1 if hh > 0 else 0
         with open(args.output + '/log.txt', 'a') as f:
             f.write('Episode: {}, Total numsteps: {}, Episode steps: {}, Reward: {}, Cost: {}, Running Time: {}, Violation: {}\n'.format(i_episode, total_numsteps, episode_steps, round(episode_reward, 2), round(episode_cost, 2), round(end-start, 4), h_count))
@@ -256,8 +250,6 @@ if __name__ == "__main__":
                         help='run on CUDA (default: False)')
     parser.add_argument('--device_num', type=int, default=0, help='Select GPU number for CUDA (default: 0)')
     parser.add_argument('--resume', default='default', type=str, help='Resuming model path for testing')
-    parser.add_argument('--validate_episodes', default=5, type=int, help='how many episode to perform during validate experiment')
-    parser.add_argument('--validate_steps', default=1000, type=int, help='how many steps to perform a validate experiment')
     # CBF, Dynamics, Env Args
     parser.add_argument('--no_diff_qp', action='store_false', dest='diff_qp', help='Should the agent diff through the CBF?')
     parser.add_argument('--gp_model_size', default=3000, type=int, help='gp')
@@ -293,30 +285,6 @@ if __name__ == "__main__":
     if args.cuda:
         torch.cuda.set_device(args.device_num)
 
-    if args.mode == 'train' and args.log_comet:
-        project_name = 'sac-rcbf-unicycle-environment' if args.env_name == 'Unicycle' else 'sac-rcbf-sim-quadrotor-env'
-        prYellow('Logging experiment on comet.ml!')
-        # Create an experiment with your api key
-        experiment = Experiment(
-            api_key=args.comet_key,
-            project_name=project_name,
-            workspace=args.comet_workspace,
-        )
-        # Log args on comet.ml
-        experiment.log_parameters(vars(args))
-        experiment_tags = ['MB' if args.model_based else 'MF',
-                           str(args.batch_size) + '_batch',
-                           str(args.updates_per_step) + '_step_updates',
-                           'diff_qp' if args.diff_qp else 'reg_qp']
-        if args.use_comp:
-            experiment_tags.append('use_comp')
-        print(experiment_tags)
-        experiment.add_tags(experiment_tags)
-    else:
-        experiment = None
-
-    if args.use_comp and (args.model_based or args.diff_qp):
-        raise Exception('Compensator can only be used with model free RL and regular CBF.')
 
     # Environment
     env = build_env(args)
@@ -345,7 +313,7 @@ if __name__ == "__main__":
         import time
         start_time = time.time()
         # agent.policy.load_state_dict(torch.load('test/actor1.pkl', map_location=torch.device("cuda")))
-        epi_return, avg_return, sigma_hat, gp_est, disturbance = train(agent, env, dynamics_model, args, experiment)
+        epi_return, avg_return, sigma_hat, gp_est, disturbance = train(agent, env, dynamics_model, args)
         print('Training time: {}'.format(time.time() - start_time))
 
     elif args.mode == 'test':
